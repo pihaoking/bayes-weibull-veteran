@@ -1,0 +1,34 @@
+# Weibull regression model used for Q1.
+# The R script prepares the veteran data and keeps the 128 observed deaths.
+#
+# For patient i:
+#   time[i] ~ Weibull(k, lambda[i])
+#   log(lambda[i]) = -eta[i], with eta[i] the linear predictor.
+#
+# I use vague normal priors for the regression coefficients and a vague
+# gamma prior for the positive Weibull shape parameter k.
+# Reference group: treatment 1, squamous cell type, average Karnofsky score.
+
+model {
+  # Likelihood
+  for (i in 1:N) {
+    time[i] ~ dweib(k, lambda[i])
+    log(lambda[i]) <- -eta[i]
+    eta[i] <- beta0
+            + beta_trt   * trt2[i]
+            + beta_karno * karno_c[i]
+            + beta_small * smallcell[i]
+            + beta_adeno * adeno[i]
+            + beta_large * large[i]
+  }
+
+  # Priors
+  beta0       ~ dnorm(0, 1.0E-6)
+  beta_trt    ~ dnorm(0, 1.0E-6)
+  beta_karno  ~ dnorm(0, 1.0E-6)
+  beta_small  ~ dnorm(0, 1.0E-6)
+  beta_adeno  ~ dnorm(0, 1.0E-6)
+  beta_large  ~ dnorm(0, 1.0E-6)
+
+  k ~ dgamma(0.001, 0.001)
+}
